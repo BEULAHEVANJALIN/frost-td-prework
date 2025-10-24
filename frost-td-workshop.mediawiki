@@ -1,0 +1,100 @@
+= FROST Trusted Dealer & Threshold Signatures (Workshop Overview) =
+
+'''Workshop focus:''' A collaborative deep dive into the Flexible Round-Optimised Schnorr Threshold (FROST) protocol, with hands-on practice creating and verifying threshold key shares, and a look at the real math that makes it elegant. We'll walk through how (and why) FROST's spec (RFC 9591) works, ending the session with a real open technical problem for live debate.
+
+----
+
+== What is FROST, in Practice? ==
+
+FROST is a standard for producing Bitcoin threshold signatures. Imagine N people, any t of whom can jointly sign a transaction-but the resulting signature is compact (Schnorr), standard, and reveals nothing about how many signers were involved. In Taproot, this means threshold policy indistinguishability.
+
+This session is about building (and questioning) a trusted-dealer setup, where one party creates shares for everyone else, and everyone can verify that their share is consistent and secure. You '''don't''' need to be a cryptography expert, but you do need curiosity and a willingness to look under the hood.
+
+----
+
+== The Beauty of the Math: Why Lagrange Is Magic ==
+
+At its core, FROST relies on Shamir Secret Sharing and the magic of polynomial interpolation. Here's the quick sketch:
+
+* '''Secret Sharing:''' Generate a polynomial of degree (t-1),
+  <pre>f(x) = a₀ + a₁x + ... + aₜ₋₁x^(t-1)</pre>
+  over the secp256k1 order.
+  * The secret is the constant term (a₀)
+  * Each participant gets a share: evaluate f(x) at their unique nonzero ID (dᵢ = f(idᵢ))
+
+* '''Feldman Verification:''' For every coefficient aₖ, compute a public commitment:
+  <pre>Aₖ = aₖ · G</pre>
+  Anyone can check that their share matches:
+  <pre>dᵢ · G ?= Σ (idᵢ)^k · Aₖ,  for k = 0 … (t-1)</pre>
+
+* '''Lagrange Interpolation:''' Any subset of t participants can reconstruct the group public key or combine signatures, without ever reconstructing the private key. This works by weighting shares using Lagrange basis polynomials:
+  <pre>λᵢ = Π (xⱼ / (xⱼ - xᵢ)) mod n,  for all j ≠ i</pre>
+
+The group operation (signing or aggregating pubkeys) always "just works" for any qualified subset.
+
+This is genuinely one of the more beautiful applications of algebra in real-world cryptography.
+
+----
+
+== What Will Happen in the Session? ==
+
+'''We will:'''
+
+=== 1. Introduce the Protocol ===
+* Why threshold signatures matter for Bitcoin, Taproot, and privacy. 
+* What makes FROST different: fixed-size, indistinguishable Schnorr signatures with threshold security.
+
+=== 2. Walk Through the Math-With Examples ===
+* Build and visualize a Shamir polynomial; assign everyone their unique ID.
+* Create shares together and ''see'' how and why Feldman verification protects against cheating.
+* Derive the group public key, explain commitment math, and watch Lagrange interpolation work via hands-on calculation.
+
+=== 3. Full Protocol Flow (FROST per RFC 9591, No Script Path) ===
+* '''Key Generation:''' Trusted dealer creates shares, commitments, and the group public key.
+* '''Share Verification:''' Each participant verifies their secret share using Feldman's check.
+* '''Signing (if time):''' Simulate (or outline) FROST's multi-round signing-aggregate nonces, binding hash, aggregate signature.
+* '''Signature Verification:''' Check the result is a valid Schnorr (BIP340-style) signature for the group key.
+
+=== 4. Technical Open Problem-For the Room to Debate ===
+'''Is trusted-dealer enough?'''  
+FROST as in RFC 9591 assumes a correctly-behaving dealer, but what if the dealer is not trustworthy? What are the risk surfaces? How do we even define verifiable "cheat-evidence" in a no-script environment?  
+(No DKG in this session, but we'll outline why DKG is such a pain.)
+
+We'll brainstorm real threats and collect ideas for tightening the trusted dealer role, or point out gaps in the current (no script path) proposal for further community work.
+
+----
+
+== What's NOT in Scope ==
+
+* No Distributed Key Generation (DKG) protocol code this time, focus is on trusted-dealer
+* No script-path Taproot policies (key-path only)
+* No production-constant-time or audited reference implementation in this session (the post-workshop repo will be purposely didactic)
+
+----
+
+== Logistics & Requirements ==
+
+* '''Bring:''' Laptop (Python 3.10+, Git), curiosity for algebra and protocol reasoning; editor/terminal familiarity helps  
+* '''We provide:''' Annotated spec cutouts, math demo slides, repo scaffold (to be completed after the workshop), and all group activity materials  
+* '''Optional Reading:''' RFC 9591 Sections 3, 4, and Appendix C; BIP-340 (Schnorr), BIP-341 (Taproot)
+
+----
+
+== What You'll Take Away ==
+
+* A hands-on understanding of threshold cryptography and why FROST is a practical, beautiful standard for Bitcoin security  
+* The ability to create, verify, and reason about key shares and group keys  
+* Practical insight into how protocol-level math (Lagrange, Shamir, Feldman) actually ''shows up'' in wallet/infra  
+* Participation in a real debate on an open (and unsolved) problem in Bitcoin's next-generation wallet stack
+
+----
+
+'''Let's actually build the next step in threshold signatures by understanding, not just coding. Looking forward to seeing how the room attacks these problems together!'''
+
+----
+
+'''Contact:'''
+
+'''Sources:'''
+
+'''Repo & slides''' will be published post-workshop. Feedback in advance is most welcome.
