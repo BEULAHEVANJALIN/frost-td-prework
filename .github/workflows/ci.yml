@@ -21,4 +21,4 @@ jobs:
         run: |
           python -c "import frost; import importlib; print('frost:', frost.__file__)"
           python -m workshop.keygen_trusted_dealer
-          python -m workshop.signing_demo
+          python -m workshop.signing
