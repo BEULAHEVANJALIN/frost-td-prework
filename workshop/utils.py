@@ -132,7 +132,7 @@ def coefficient_commitments(coeffs: Sequence[int]) -> Tuple[Point, ...]:
         phi_k = c_k * G  for k = 0..t-1.
 
     NOTE: This is a small wrapper that uses the vendored Point/G. It does not
-    replace any frost logic; it's just a convenience for your demos.
+    replace any frost logic; it's just a convenience for demo purposes.
 
     Args:
         coeffs: scalar coefficients in Z_q.
